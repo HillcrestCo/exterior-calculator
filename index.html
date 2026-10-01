@@ -823,14 +823,15 @@ function guardFor(o){
     var price=Math.round(o.total*(1+p/100)*100)/100;
     var profit=0.9*price-(+o.labor||0)-(+o.paint||0);
     var mg=profit/price;
-    if(mg>=0.15-1e-9)rows.push({p:p,price:price,mg:Math.round(mg*1000)/10});
+    if(mg>=0.15-1e-9)rows.push({p:p,price:price,mg:Math.round(mg*1000)/10,dAmt:Math.round((price-o.total)*100)/100});
   });
   return {rows:rows,noDisc:!rows.some(function(r){return r.p<0;})};
 }
 function guardCard(label,o){
   var g=guardFor(o),h='<div class="bk"><h3>'+esc(label)+' &middot; '+esc(t("guardL"))+'<span class="internal-tag">'+esc(t("internalTag"))+'</span></h3>';
   g.rows.forEach(function(r){
-    h+='<div class="rowline"><span>'+(r.p>0?"+":"")+r.p+'% &rarr; '+money(r.price)+'</span><span>'+pct1(r.mg)+' '+esc(t("marginL"))+'</span></div>';
+    var da=(r.dAmt<0?"-$":"+$")+Math.abs(Math.round(r.dAmt)).toLocaleString("en-US");
+    h+='<div class="rowline"><span>'+(r.p>0?"+":"")+r.p+'% ('+da+') &rarr; '+money(r.price)+'</span><span>'+pct1(r.mg)+' '+esc(t("marginL"))+'</span></div>';
   });
   if(g.noDisc)h+='<div class="rowline warnline"><span>'+esc(t("guardNoDisc"))+'</span><span></span></div>';
   return h+'</div>';
@@ -1005,7 +1006,8 @@ function buildReportPdf(r){
     T2(36,y2,gc[1]+" \u2014 base "+money(o.total)+" (margin "+baseMg+"%)",10,true,DARK);y2-=16;
     g.rows.forEach(function(rr){
       if(y2<70)return;
-      T2(58,y2,(rr.p>0?"+":"")+rr.p+"%  ->  "+money(rr.price)+"   (margin "+rr.mg+"%)",9,false,DARK);y2-=14;
+      var da2=(rr.dAmt<0?"-$":"+$")+Math.abs(Math.round(rr.dAmt)).toLocaleString("en-US");
+      T2(58,y2,(rr.p>0?"+":"")+rr.p+"% ("+da2+")  ->  "+money(rr.price)+"   (margin "+rr.mg+"%)",9,false,DARK);y2-=14;
     });
     if(g.noDisc&&y2>70){T2(58,y2,"NO MARGIN FOR DISCOUNTS \u2014 any discount drops profit below 15%.",9,true,RED);y2-=16;}
     y2-=10;
