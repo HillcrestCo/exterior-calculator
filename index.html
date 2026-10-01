@@ -765,21 +765,34 @@ function openReport(id){
 }
 
 /* ================= Importar reporte (link #r= de Gaby) ================= */
+function storeImportedReport(rep){
+  if(!rep||rep.calc!=="exterior-report"||!rep.id||!Array.isArray(rep.areas))throw 0;
+  const ix=state.reports.findIndex(r=>r.id===rep.id);
+  if(ix>=0)state.reports[ix]=rep;else state.reports.unshift(rep);
+  state.pending=state.pending.filter(p=>!(p.client===rep.client&&p.address===rep.address));
+  save();
+}
 function importFromHash(){
   const h=location.hash||"";
   const m=h.match(/^#r=([A-Za-z0-9\-_]+=*)$/);
   if(!m)return false;
   try{
     const b64=m[1].replace(/-/g,"+").replace(/_/g,"/");
-    const rep=JSON.parse(decodeURIComponent(escape(atob(b64))));
-    if(!rep||rep.calc!=="exterior-report"||!rep.id||!Array.isArray(rep.areas))throw 0;
-    const ix=state.reports.findIndex(r=>r.id===rep.id);
-    if(ix>=0)state.reports[ix]=rep;else state.reports.unshift(rep);
-    state.pending=state.pending.filter(p=>!(p.client===rep.client&&p.address===rep.address));
-    save();toast(t("imported"));
+    storeImportedReport(JSON.parse(decodeURIComponent(escape(atob(b64)))));
+    toast(t("imported"));
   }catch(e){toast(t("importFail"));}
   try{history.replaceState(null,"",location.pathname+location.search);}catch(e2){}
   return true;
+}
+/* Link corto ?report=<id>: Gaby publica reports/<id>.json en el sitio y la app lo descarga solo */
+function importFromReportParam(){
+  let id="";
+  try{id=new URLSearchParams(location.search).get("report")||"";}catch(e){}
+  if(!/^[A-Za-z0-9][A-Za-z0-9\-_]{2,60}$/.test(id))return;
+  fetch("reports/"+id+".json",{cache:"no-store"}).then(r=>{if(!r.ok)throw 0;return r.json();})
+    .then(rep=>{storeImportedReport(rep);toast(t("imported"));showView("reports");
+      try{history.replaceState(null,"",location.pathname);}catch(e2){}})
+    .catch(e=>{toast(t("importFail"));});
 }
 
 /* ================= Detalle del reporte ================= */
@@ -989,6 +1002,7 @@ $("resetBtn").addEventListener("click",resetAll);
 /* ================= Inicio ================= */
 applyLang();
 const hadImport=importFromHash();
+if(!hadImport)importFromReportParam();
 showView(hadImport?"reports":"new");
 </script>
 </body>

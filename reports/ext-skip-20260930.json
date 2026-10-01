@@ -1,0 +1,118 @@
+{
+ "v": 3,
+ "calc": "exterior-report",
+ "id": "ext-skip-20260930",
+ "client": "Skip Hauck",
+ "address": "6675 Augusta Rd, Chaska, MN 55318",
+ "companycam": "https://app.companycam.com/projects/115676950",
+ "date": "2026-09-30",
+ "yearBuilt": 1890,
+ "marketValue": "Unavailable",
+ "areas": [
+  {
+   "name_es": "Paredes",
+   "name_en": "Body walls",
+   "qty": "2,230 sq ft",
+   "tu": 5575,
+   "mn": 7805,
+   "rec": 6690
+  },
+  {
+   "name_es": "Piñones",
+   "name_en": "Peaks/Gables",
+   "qty": "280 sq ft",
+   "tu": 980,
+   "mn": 980,
+   "rec": 980
+  },
+  {
+   "name_es": "Molduras",
+   "name_en": "Trim",
+   "qty": "360 LF",
+   "tu": 1440,
+   "mn": 1955,
+   "rec": 1698
+  },
+  {
+   "name_es": "Marcos de ventana",
+   "name_en": "Window trim",
+   "qty": "20 ea",
+   "tu": 1500,
+   "mn": 1900,
+   "rec": 1700
+  },
+  {
+   "name_es": "Marcos de puerta",
+   "name_en": "Door trim",
+   "qty": "3 ea",
+   "tu": 150,
+   "mn": 150,
+   "rec": 150
+  },
+  {
+   "name_es": "Puerta principal",
+   "name_en": "Front door",
+   "qty": "1 ea",
+   "tu": 175,
+   "mn": 185,
+   "rec": 180
+  },
+  {
+   "name_es": "Deck",
+   "name_en": "Deck",
+   "qty": "200 sq ft",
+   "tu": 500,
+   "mn": 484,
+   "rec": 492
+  },
+  {
+   "name_es": "Cimientos",
+   "name_en": "Foundation",
+   "qty": "440 sq ft",
+   "tu": 1100,
+   "mn": 1100,
+   "rec": 1100
+  }
+ ],
+ "totals": {
+  "tu": 11420,
+  "mn": 14559,
+  "rec": 12990
+ },
+ "breakdown": {
+  "tu": {
+   "total": 11420,
+   "overhead": 1142.0,
+   "base": 10278.0,
+   "labor": 6166.8,
+   "paint": 2306.92,
+   "paintGal": 30,
+   "paintPct": 22.4,
+   "profit": 1804.28,
+   "profitPct": 17.6
+  },
+  "mn": {
+   "total": 14559,
+   "overhead": 1455.9,
+   "base": 13103.1,
+   "labor": 7861.86,
+   "paint": 2306.92,
+   "paintGal": 30,
+   "paintPct": 17.6,
+   "profit": 2934.32,
+   "profitPct": 22.4
+  },
+  "rec": {
+   "total": 12990,
+   "overhead": 1299.0,
+   "base": 11691.0,
+   "labor": 7014.6,
+   "paint": 2306.92,
+   "paintGal": 30,
+   "paintPct": 19.7,
+   "profit": 2369.48,
+   "profitPct": 20.3
+  }
+ },
+ "notes": "INFORME DE PRUEBA. Cantidades ESTIMADAS de las 40 fotos — la API de CompanyCam no devuelve valores de medición LiDAR (las anotaciones vienen idénticas a los originales). Costos de pintura a precio menudeo de prueba: WoodScapes $57.50/gal, Duration $111.49/gal, Loxon $95/gal (NO tus precios de cuenta). Alcance según tu formulario: puerta principal y deck INCLUIDOS (no están en la propuesta actual de DripJobs); tarifa de deck $2.50/sf provisional. Columna Minnesota: tarifas investigadas; sin fuente para piñones, marcos de puerta y cimientos (se usó tu tarifa). Recomendado = promedio de Tu precio y Minnesota por área. Año 1890 (Ownerly/parcela 04-0031400). Valor de mercado no disponible (Beacon bloqueado, sin datos en Zillow/Redfin). Chimenea incluida en Paredes. Daño leve: algunas tablas podridas."
+}
