@@ -107,6 +107,8 @@
     border-bottom:1px dashed var(--line);}
   .bk .rowline span:last-child{font-weight:700;}
   .bk .rowline.profit span:last-child{color:var(--green);}
+  .bk .rowline.warnline{color:#b04a3a; font-weight:700;}
+  .bk .rowline.warnline span:last-child{color:#b04a3a;}
   .internal-tag{display:inline-block; font-size:10.5px; font-weight:700; color:#9a6b1a;
     background:#fdf3e0; border-radius:6px; padding:2px 8px; margin-left:6px; vertical-align:middle;}
   /* modal + toast (suite pattern) */
@@ -356,6 +358,8 @@ internalL:"Desglose interno", internalTag:"solo interno",
 bkOverhead:"Overhead (10%)", bkBase:"Base (90%)",
 bkLabor:"Mano de obra (60% de la base)", bkPaint:"Pintura",
 bkProfit:"Ganancia", bkGal:"gal",
+guardL:"Margen de seguridad", marginL:"margen",
+guardNoDisc:"ADVERTENCIA: sin margen para descuentos \u2014 cualquier descuento baja la ganancia a menos del 15%.",
 pdfBtn:"🧾 Descargar PDF",
 sendRepBtn:"📨 Enviar a Gaby",
 instrL:"Instrucciones para Gaby",
@@ -425,6 +429,8 @@ internalL:"Internal breakdown", internalTag:"internal only",
 bkOverhead:"Overhead (10%)", bkBase:"Base (90%)",
 bkLabor:"Labor (60% of base)", bkPaint:"Paint",
 bkProfit:"Profit", bkGal:"gal",
+guardL:"Margin guardrail", marginL:"margin",
+guardNoDisc:"WARNING: no margin for discounts \u2014 any discount drops profit below 15%.",
 pdfBtn:"🧾 Download PDF",
 sendRepBtn:"📨 Send to Gaby",
 instrL:"Instructions for Gaby",
@@ -811,6 +817,24 @@ function bkCard(label,opt){
    +'<div class="rowline profit"><span>'+esc(t("bkProfit"))+(o.profitPct!=null?" ("+pct1(o.profitPct)+")":"")+'</span><span>'+money(o.profit)+'</span></div>'
    +'</div>';
 }
+function guardFor(o){
+  var rows=[];
+  [15,10,5,-5,-10,-15].forEach(function(p){
+    var price=Math.round(o.total*(1+p/100)*100)/100;
+    var profit=0.9*price-(+o.labor||0)-(+o.paint||0);
+    var mg=profit/price;
+    if(mg>=0.15-1e-9)rows.push({p:p,price:price,mg:Math.round(mg*1000)/10});
+  });
+  return {rows:rows,noDisc:!rows.some(function(r){return r.p<0;})};
+}
+function guardCard(label,o){
+  var g=guardFor(o),h='<div class="bk"><h3>'+esc(label)+' &middot; '+esc(t("guardL"))+'<span class="internal-tag">'+esc(t("internalTag"))+'</span></h3>';
+  g.rows.forEach(function(r){
+    h+='<div class="rowline"><span>'+(r.p>0?"+":"")+r.p+'% &rarr; '+money(r.price)+'</span><span>'+pct1(r.mg)+' '+esc(t("marginL"))+'</span></div>';
+  });
+  if(g.noDisc)h+='<div class="rowline warnline"><span>'+esc(t("guardNoDisc"))+'</span><span></span></div>';
+  return h+'</div>';
+}
 function renderDetail(id){
   const r=getReport(id);
   const card=$("repDetailCard");
@@ -826,7 +850,7 @@ function renderDetail(id){
   h+='<table class="rtable"><tr><th>'+esc(t("colArea"))+'</th><th>'+esc(t("colQty"))+'</th>'
     +'<th class="r">'+esc(t("colTu"))+'</th><th class="r">'+esc(t("colMn"))+'</th><th class="r">'+esc(t("colRec"))+'</th></tr>';
   (r.areas||[]).forEach(a=>{
-    h+='<tr><td>'+esc(es?a.name_es:a.name_en||a.name_es)+'</td><td>'+esc(a.qty||"—")+'</td>'
+    h+='<tr><td>'+esc(a.name_en||a.name_es||"")+'</td><td>'+esc(a.qty||"—")+'</td>'
       +'<td class="r">'+money(a.tu)+'</td><td class="r">'+money(a.mn)+'</td><td class="r">'+money(a.rec)+'</td></tr>';
   });
   const tot=r.totals||{};
@@ -837,6 +861,9 @@ function renderDetail(id){
     if(bk.tu)h+=bkCard(t("colTu"),bk.tu);
     if(bk.mn)h+=bkCard(t("colMn"),bk.mn);
     if(bk.rec)h+=bkCard(t("colRec"),bk.rec);
+    if(bk.tu)h+=guardCard(t("colTu"),bk.tu);
+    if(bk.mn)h+=guardCard(t("colMn"),bk.mn);
+    if(bk.rec)h+=guardCard(t("colRec"),bk.rec);
   }
   if(r.notes)h+='<div class="seclabel">'+esc(t("notesL"))+'</div><p class="note" style="font-size:13px;color:var(--ink);">'+esc(r.notes)+'</p>';
   h+='<div class="btnrow" style="margin-top:14px;">'
@@ -964,6 +991,26 @@ function buildReportPdf(r){
     y-=6;
   }
   T(36,40,"The Hillcrest Company · 612-741-9863",8.5,true,GREEN);
+  var hasBk=!!(r.breakdown&&(r.breakdown.tu||r.breakdown.mn||r.breakdown.rec));
+  var P2={s:""};
+  function T2(x,y,txt,size,bold,color){P2.s+="BT /F"+(bold?"2":"1")+" "+size+" Tf "+color+" rg "+x.toFixed(1)+" "+y.toFixed(1)+" Td ("+pdfEsc(txt)+") Tj ET\n";}
+  var RED="0.72 0.10 0.10";
+  var y2=560;
+  T2(36,y2,"Margin guardrail \u2014 internal, do not share with client",12,true,DARK);y2-=24;
+  [["tu","Your price"],["mn","Minnesota"],["rec","Recommended"]].forEach(function(gc){
+    var o=(r.breakdown||{})[gc[0]];
+    if(!o||y2<120)return;
+    var g=guardFor(o);
+    var baseMg=Math.round(((0.9*o.total-(+o.labor||0)-(+o.paint||0))/o.total)*1000)/10;
+    T2(36,y2,gc[1]+" \u2014 base "+money(o.total)+" (margin "+baseMg+"%)",10,true,DARK);y2-=16;
+    g.rows.forEach(function(rr){
+      if(y2<70)return;
+      T2(58,y2,(rr.p>0?"+":"")+rr.p+"%  ->  "+money(rr.price)+"   (margin "+rr.mg+"%)",9,false,DARK);y2-=14;
+    });
+    if(g.noDisc&&y2>70){T2(58,y2,"NO MARGIN FOR DISCOUNTS \u2014 any discount drops profit below 15%.",9,true,RED);y2-=16;}
+    y2-=10;
+  });
+  T2(36,40,"The Hillcrest Company \u00b7 612-741-9863",8.5,true,GREEN);
   const objs=[];
   objs[1]="<< /Type /Catalog /Pages 2 0 R >>";
   objs[2]="<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
@@ -974,6 +1021,13 @@ function buildReportPdf(r){
   objs[6]="<< /Length "+P.s.length+" >>\nstream\n"+P.s+"endstream";
   let count=6;
   if(LOGO_BIN){count=7;objs[7]="<< /Type /XObject /Subtype /Image /Width "+LOGO_W+" /Height "+LOGO_H+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+LOGO_BIN.length+" >>\nstream\n"+LOGO_BIN+"endstream";}
+  if(hasBk){
+    var p2n=count+1,c2n=count+2;
+    objs[p2n]="<< /Type /Page /Parent 2 0 R /MediaBox [0 0 792 612] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents "+c2n+" 0 R >>";
+    objs[c2n]="<< /Length "+P2.s.length+" >>\nstream\n"+P2.s+"endstream";
+    objs[2]="<< /Type /Pages /Kids [3 0 R "+p2n+" 0 R] /Count 2 >>";
+    count=c2n;
+  }
   let pdf="%PDF-1.4\n",offs=[0];
   for(let i=1;i<=count;i++){offs[i]=pdf.length;pdf+=i+" 0 obj\n"+objs[i]+"\nendobj\n";}
   const xoff=pdf.length;
