@@ -261,21 +261,25 @@ const pct1=n=>(Math.round(Number(n)*10)/10)+"%";
 <script>
 /* ============ Áreas y accesibilidad ============ */
 const AREAS=[
- {id:"body",       es:"Paredes",            en:"Body walls"},
- {id:"peaks",      es:"Piñones",            en:"Peaks/Gables"},
- {id:"soffit",     es:"Sofito",             en:"Soffit"},
- {id:"fascia",     es:"Fascia",             en:"Fascia"},
- {id:"gutters",    es:"Canalones",          en:"Gutters"},
- {id:"downspouts", es:"Bajantes",           en:"Downspouts"},
- {id:"trim",       es:"Molduras",           en:"Trim"},
- {id:"windowtrim", es:"Marcos de ventana",  en:"Window trim"},
- {id:"doortrim",   es:"Marcos de puerta",   en:"Door trim"},
- {id:"frontdoor",  es:"Puerta principal",   en:"Front door"},
- {id:"porchposts", es:"Postes del porche",  en:"Porch posts"},
- {id:"deck",       es:"Deck",               en:"Deck"},
- {id:"garagedoors",es:"Puertas de garaje",  en:"Garage doors"},
- {id:"shutters",   es:"Persianas",          en:"Shutters"},
- {id:"foundation", es:"Cimientos",          en:"Foundation"}
+ {id:"body", es:"Body walls", en:"Body walls"},
+ {id:"peaks", es:"Peaks/Gables", en:"Peaks/Gables"},
+ {id:"soffit", es:"Soffit", en:"Soffit"},
+ {id:"fascia", es:"Fascia", en:"Fascia"},
+ {id:"gutters", es:"Gutters", en:"Gutters"},
+ {id:"downspouts", es:"Downspouts", en:"Downspouts"},
+ {id:"trim", es:"Trim", en:"Trim"},
+ {id:"windowtrim", es:"Window trim", en:"Window trim"},
+ {id:"doortrim", es:"Door trim", en:"Door trim"},
+ {id:"frontdoor", es:"Front door", en:"Front door"},
+ {id:"accessdoors", es:"Access doors", en:"Access doors"},
+ {id:"columns", es:"Columns/Pillars", en:"Columns/Pillars"},
+ {id:"frontporch", es:"Front porch", en:"Front porch"},
+ {id:"deck", es:"Deck", en:"Deck"},
+ {id:"garagedoors", es:"Garage doors", en:"Garage doors"},
+ {id:"shutters", es:"Shutters", en:"Shutters"},
+ {id:"brickfacade", es:"Brick facade", en:"Brick facade"},
+ {id:"stuccofacade", es:"Stucco facade", en:"Stucco facade"},
+ {id:"foundation", es:"Foundation", en:"Foundation"}
 ];
 const LIDAR_ITEMS=[
  {id:"lidaron", es:"Modo LiDAR ACTIVADO en cada foto de medida", en:"LiDAR mode ON for every measurement photo"},
@@ -439,7 +443,7 @@ pdfFail:"Could not build the PDF: "
 };
 let lang="es";
 function t(k){const d=STRINGS[lang]||STRINGS.es;return d[k]!==undefined?d[k]:STRINGS.es[k];}
-function areaName(a){return lang==="en"?a.en:a.es;}
+function areaName(a){return a.en;}
 
 /* ================= Estado ================= */
 function defaultForm(){
@@ -897,26 +901,26 @@ function buildReportPdf(r){
   const GREEN="0.118 0.361 0.247",GOLD="0.788 0.635 0.153",DARK="0.17 0.17 0.15",GRAY="0.54 0.52 0.47";
   function T(x,y,txt,size,bold,color){P.s+="BT /F"+(bold?"2":"1")+" "+size+" Tf "+color+" rg "+x.toFixed(1)+" "+y.toFixed(1)+" Td ("+pdfEsc(txt)+") Tj ET\n";}
   function rect(x,y,w,h,color){P.s+=color+" rg "+x+" "+y+" "+w+" "+h+" re f\n";}
-  const es=lang==="es";
+  const te=k=>(STRINGS.en[k]!==undefined?STRINGS.en[k]:STRINGS.es[k]);
   if(LOGO_BIN)P.s+="q 190 0 0 41.1 36 560 cm /Im1 Do Q\n";
-  T(36,542,t("pdfTitle"),12,true,DARK);
+  T(36,542,te("pdfTitle"),12,true,DARK);
   let y=526;
   if(r.client){T(36,y,r.client,11,true,DARK);y-=16;}
-  if(r.address){T(36,y,t("projLabel")+r.address,9,false,DARK);y-=14;}
+  if(r.address){T(36,y,te("projLabel")+r.address,9,false,DARK);y-=14;}
   let yb="";
-  if(r.yearBuilt!=null&&r.yearBuilt!=="")yb+=t("yearBuiltL")+": "+r.yearBuilt;
-  if(r.marketValue!=null&&r.marketValue!==""){if(yb)yb+="   ·   ";yb+=t("marketValL")+": "+(typeof r.marketValue==="number"?money(r.marketValue):r.marketValue);}
+  if(r.yearBuilt!=null&&r.yearBuilt!=="")yb+=te("yearBuiltL")+": "+r.yearBuilt;
+  if(r.marketValue!=null&&r.marketValue!==""){if(yb)yb+="   ·   ";yb+=te("marketValL")+": "+(typeof r.marketValue==="number"?money(r.marketValue):r.marketValue);}
   if(yb){T(36,y,yb,9,false,DARK);y-=14;}
   if(r.companycam){T(36,y,"CompanyCam: "+String(r.companycam).slice(0,80),8,false,GRAY);y-=13;}
-  T(36,y,t("dateLabel")+": "+(r.date||""),9,false,GRAY);y-=10;
+  T(36,y,te("dateLabel")+": "+(r.date||""),9,false,GRAY);y-=10;
   rect(36,y,720,2.5,GOLD);y-=24;
-  const cx=[36,58,300,425,522,619],hw=["#",t("colArea"),t("colQty"),t("colTu"),t("colMn"),t("colRec")];
+  const cx=[36,58,300,425,522,619],hw=["#",te("colArea"),te("colQty"),te("colTu"),te("colMn"),te("colRec")];
   rect(36,y-6,720,20,GREEN);
   hw.forEach((hh,i)=>T(cx[i]+4,y,hh,9,true,"1 1 1"));
   y-=20;
   (r.areas||[]).forEach((a,i)=>{
     if(y<90)return;
-    const nm=es?(a.name_es||""):(a.name_en||a.name_es||"");
+    const nm=a.name_en||a.name_es||"";
     if(i%2===0)rect(36,y-6,720,20,"0.96 0.97 0.94");
     T(cx[0]+4,y,String(i+1)+".",9,false,DARK);
     T(cx[1]+4,y,nm.length>36?nm.slice(0,36)+"…":nm,9,false,DARK);
@@ -929,13 +933,33 @@ function buildReportPdf(r){
   });
   const tot=r.totals||{};
   y-=2;rect(36,y-6,720,2,GOLD);y-=20;
-  T(cx[1]+4,y,t("totalL"),10,true,DARK);
+  T(cx[1]+4,y,te("totalL"),10,true,DARK);
   T(cx[3]+4,y,money(tot.tu),10,true,DARK);
   T(cx[4]+4,y,money(tot.mn),10,true,DARK);
   T(cx[5]+4,y,money(tot.rec),10,true,DARK);
   y-=22;
+  const bk=r.breakdown||{},bcols=["tu","mn","rec"],bkeys=["colTu","colMn","colRec"];
+  if(bk.tu&&bk.mn&&bk.rec&&y>195){
+    T(cx[1]+4,y,"Internal breakdown \u2014 do not share with client",9,true,GRAY);y-=16;
+    bkeys.forEach((k,i)=>T(cx[3+i]+4,y,te(k),9,true,DARK));
+    y-=14;
+    const brows=[
+      ["Overhead (10%)",b=>b.overhead],
+      ["Base (90%)",b=>b.base],
+      ["Labor (60% of base)",b=>b.labor],
+      ["Paint ("+(bk.tu.paintGal||"?")+" gal)",b=>b.paint],
+      ["Profit",b=>b.profit]
+    ];
+    brows.forEach((rw,i)=>{
+      if(i%2===1)rect(36,y-5,720,17,"0.96 0.97 0.94");
+      T(cx[1]+4,y,rw[0],8.5,false,DARK);
+      bcols.forEach((c,j)=>T(cx[3+j]+4,y,money(rw[1](bk[c])),8.5,false,DARK));
+      y-=17;
+    });
+    y-=8;
+  }
   if(r.notes){
-    T(36,y,t("notesL"),9,true,GRAY);y-=14;
+    T(36,y,te("notesL"),9,true,GRAY);y-=14;
     wrap(r.notes,92).slice(0,5).forEach(ln=>{T(36,y,ln,8.5,false,DARK);y-=12;});
     y-=6;
   }
